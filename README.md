@@ -12,10 +12,10 @@ refer to https://developers.google.com/drive/api/v3/quickstart/go?hl=ja
 
 running
 ```
-go run drive_search.go -n sample
+go run drive_search.go -n SearchWord
 
 or
 
-./drive_search -n sample
+./drive_search -n SearchWord
 ```
 
