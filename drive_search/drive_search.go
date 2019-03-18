@@ -100,7 +100,7 @@ func main() {
 		log.Fatalf("Unable to retrieve Drive client: %v", err)
 	}
 
-	r, err := srv.Files.List().Q(fmt.Sprintf("name contains '%s'", *findingName)).PageSize(10).
+	r, err := srv.Files.List().Q(fmt.Sprintf("name contains '%s'", *findingName)).
 		Fields("nextPageToken, files(id, name, parents)").Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve files: %v", err)
@@ -112,7 +112,7 @@ func main() {
 		for _, i := range r.Files {
 			if len(i.Parents) != 0 {
 				fullpath := path.Join(SearchFullPath(srv, i.Parents[0]), i.Name)
-				fmt.Printf("%s,%s\n", i.Id, fullpath)
+				fmt.Printf("%s %s\n", i.Id, fullpath)
 			}
 		}
 	}
@@ -127,7 +127,7 @@ func SearchFullPath(srv *drive.Service, parentFileID string) string {
 	}
 
 	if len(pr.Parents) == 0 {
-		return ""
+		return pr.Name
 	}
 	return path.Join(SearchFullPath(srv, pr.Parents[0]), pr.Name)
 }
