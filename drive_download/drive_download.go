@@ -111,8 +111,34 @@ func main() {
 		fmt.Println("No files found.")
 	} else {
 		downloadToPath := path.Join(*baseDir, r.Name)
-		downloadFromURL(downloadToPath, r.WebContentLink)
-		fmt.Printf("Download to %s from = %s\n", downloadToPath, r.WebContentLink)
+		if r.WebContentLink == "" {
+			os.Mkdir(downloadToPath, 0744)
+			fileList, err := srv.Files.List().Q(fmt.Sprintf("'%s' in  parents", r.Id)).Do()
+			if err != nil {
+				log.Fatalf("no files: %v", err)
+			}
+			for _, i := range fileList.Files {
+				downloadChildpath := path.Join(path.Join(*baseDir, r.Name), i.Name)
+				cr, err := srv.Files.Get(i.Id).Fields("id, name, webContentLink").Do()
+				if err != nil {
+					log.Fatalf("Unable to retrieve files: %v", err)
+				}
+				if cr.WebContentLink != "" {
+					err = downloadFromURL(downloadChildpath, cr.WebContentLink)
+					if err != nil {
+						log.Fatalf("Unable to download files: %v", err)
+					}
+					fmt.Printf("Download to %s from = %s\n", downloadChildpath, cr.WebContentLink)
+				}
+			}
+		} else {
+			err = downloadFromURL(downloadToPath, r.WebContentLink)
+			if err != nil {
+				log.Fatalf("Unable to download files: %v", err)
+			}
+			fmt.Printf("Download to %s from = %s\n", downloadToPath, r.WebContentLink)
+		}
+
 	}
 }
 
