@@ -91,7 +91,7 @@ func main() {
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope)
+	config, err := google.ConfigFromJSON(b, drive.DriveReadonlyScope)
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
@@ -119,32 +119,26 @@ func main() {
 			}
 			for _, i := range fileList.Files {
 				downloadChildpath := path.Join(path.Join(*baseDir, r.Name), i.Name)
-				cr, err := srv.Files.Get(i.Id).Fields("id, name, webContentLink").Do()
+				err := downloadFromURL(downloadChildpath, i.Id, srv)
 				if err != nil {
 					log.Fatalf("Unable to retrieve files: %v", err)
 				}
-				if cr.WebContentLink != "" {
-					err = downloadFromURL(downloadChildpath, cr.WebContentLink)
-					if err != nil {
-						log.Fatalf("Unable to download files: %v", err)
-					}
-					fmt.Printf("Download to %s from = %s\n", downloadChildpath, cr.WebContentLink)
-				}
+				fmt.Printf("Download to %s from %s\n", downloadChildpath, i.WebContentLink)
 			}
 		} else {
-			err = downloadFromURL(downloadToPath, r.WebContentLink)
+			err = downloadFromURL(downloadToPath, r.Id, srv)
 			if err != nil {
 				log.Fatalf("Unable to download files: %v", err)
 			}
-			fmt.Printf("Download to %s from = %s\n", downloadToPath, r.WebContentLink)
+			fmt.Printf("Download to %s from %s\n", downloadToPath, r.WebContentLink)
 		}
 
 	}
 }
 
-func downloadFromURL(filepath string, url string) error {
+func downloadFromURL(filepath string, fileId string, srv *drive.Service) error {
 
-	resp, err := http.Get(url)
+	resp, err := srv.Files.Get(fileId).Download()
 	if err != nil {
 		return err
 	}
